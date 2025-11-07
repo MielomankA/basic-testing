@@ -7,21 +7,22 @@ jest.mock('lodash', () => ({
 }));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+const baseURL = 'https://jsonplaceholder.typicode.com';
+const mockData = { id: 1, title: 'Test title' };
+const mockUrl = '/posts/1';
 
 describe('throttledGetDataFromApi', () => {
   test('should create instance with provided base url', async () => {
     mockedAxios.create.mockReturnValue({
-      get: jest
-        .fn()
-        .mockResolvedValue({ data: { id: 1, title: 'Test title' } }),
+      get: jest.fn().mockResolvedValue({ data: mockData }),
     } as unknown as typeof axios);
 
-    const result = await throttledGetDataFromApi('/posts/1');
+    const result = await throttledGetDataFromApi(mockUrl);
 
     expect(mockedAxios.create).toHaveBeenCalledWith({
-      baseURL: 'https://jsonplaceholder.typicode.com',
+      baseURL,
     });
-    expect(result).toEqual({ id: 1, title: 'Test title' });
+    expect(result).toEqual(mockData);
   });
 
   test('should perform request to correct provided url', async () => {
@@ -29,23 +30,23 @@ describe('throttledGetDataFromApi', () => {
     mockedAxios.create.mockReturnValue({
       get: mockGet,
     } as unknown as typeof axios);
-    await throttledGetDataFromApi('/posts/1');
+    await throttledGetDataFromApi(mockUrl);
 
     expect(mockedAxios.create).toHaveBeenCalledWith({
-      baseURL: 'https://jsonplaceholder.typicode.com',
+      baseURL,
     });
 
-    expect(mockGet).toHaveBeenCalledWith('/posts/1');
+    expect(mockGet).toHaveBeenCalledWith(mockUrl);
   });
 
   test('should return response data', async () => {
     const mockCreate = jest.fn().mockReturnValue({
-      get: jest.fn().mockResolvedValue({ data: { id: 1 } }),
+      get: jest.fn().mockResolvedValue({ data: mockData }),
     });
     (axios.create as jest.Mock).mockImplementation(mockCreate);
 
-    const result = await throttledGetDataFromApi('/posts/1');
+    const result = await throttledGetDataFromApi(mockUrl);
 
-    expect(result).toEqual({ id: 1 });
+    expect(result).toEqual(mockData);
   });
 });
